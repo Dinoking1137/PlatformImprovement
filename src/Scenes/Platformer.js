@@ -46,11 +46,11 @@ class Platformer extends Phaser.Scene {
             frame: 151
         });
 
-        this.spawn = this.map.createFromObjects("Objects", {
+        this.spawns = this.map.createFromObjects("Objects", {
             name: "flag",
             key: "tilemap_sheet",
             frame: 111
-        })[0];
+        });
 
         this.powerUps = this.map.createFromObjects("Objects", {
             name: "mushroom",
@@ -61,13 +61,16 @@ class Platformer extends Phaser.Scene {
         // Since createFromObjects returns an array of regular Sprites, we need to convert 
         // them into Arcade Physics sprites (STATIC_BODY, so they don't move) 
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.spawns, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.powerUps, Phaser.Physics.Arcade.STATIC_BODY);
 
         // Create a Phaser group out of the array this.coins
         // This will be used for collision detection below.
         this.coinGroup = this.add.group(this.coins);
+        this.spawnGroup = this.add.group(this.spawns);
         this.powerUpsGroup = this.add.group(this.powerUps);
 
+        this.spawn = this.spawnGroup.getChildren()[0]; // get the first spawn point (there's only one in this level)
         this.start = {x: this.spawn.x, y: this.spawn.y};
 
         // set up player avatar
@@ -80,6 +83,10 @@ class Platformer extends Phaser.Scene {
         // Handle collision detection with coins
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); // remove coin on overlap
+        });
+
+        this.physics.add.overlap(my.sprite.player, this.spawnGroup, (obj1, obj2) => {
+            this.start = {x: obj2.x, y: obj2.y}; // update spawn point to current flag position
         });
 
         // Handle collision detection with power-ups
@@ -182,12 +189,16 @@ class Platformer extends Phaser.Scene {
         }
 
         if(Phaser.Input.Keyboard.JustDown(this.rKey)) {
-            this.scene.restart();
+            this.onDeath(my.sprite.player);
+            //this.scene.restart();
         }
     }
 
-    spawnPlayer(){
-        let firstSpawnInsance = this.spawn[0];
-        my.sprite.player.setPosition(firstSpawnInsance.x, firstSpawnInsance.y);
+    onDeath(playerInstance){
+        playerInstance.setVelocity(0, 0);
+        playerInstance.setAccelerationX(0);
+        playerInstance.setAccelerationY(0);
+        playerInstance.setDragX(this.DRAG);
+        playerInstance.setPosition(this.start.x, this.start.y);
     }
 }
