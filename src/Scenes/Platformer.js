@@ -106,6 +106,8 @@ class Platformer extends Phaser.Scene {
         cursors = this.input.keyboard.createCursorKeys();
 
         this.rKey = this.input.keyboard.addKey('R');
+        this.pauseKey = this.input.keyboard.addKey('-');
+        this.resumeKey = this.input.keyboard.addKey('+');
 
         // debug key listener (assigned to D key)
         this.input.keyboard.on('keydown-D', () => {
@@ -192,6 +194,7 @@ class Platformer extends Phaser.Scene {
             this.onDeath(my.sprite.player);
             //this.scene.restart();
         }
+        
     }
 
     onDeath(playerInstance){
